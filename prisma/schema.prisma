@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model YappinLike {
+  id        Int     @id @default(autoincrement())
+  user_id   Int
+  yappin_id Int
+  users     users   @relation(fields: [user_id], references: [id])
+  yappins   yappins @relation(fields: [yappin_id], references: [id])
+
+  @@unique([user_id, yappin_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model follows {
+  followerId                       Int
+  followingId                      Int
+  createdAt                        DateTime @default(now())
+  id                               Int      @id @default(autoincrement())
+  users_follows_followerIdTousers  users    @relation("follows_followerIdTousers", fields: [followerId], references: [id])
+  users_follows_followingIdTousers users    @relation("follows_followingIdTousers", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model galleries {
+  id         Int      @id @default(autoincrement())
+  image_link String[]
+  user_id    Int
+  users      users    @relation(fields: [user_id], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model preference_yappin {
+  id                   Int   @id @default(autoincrement())
+  preference_tag_one   Int
+  preference_tag_two   Int
+  preference_tag_three Int
+  preference_tag_four  Int
+  user_id              Int   @unique
+  users                users @relation(fields: [user_id], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reminders {
+  id            Int      @id
+  content       String
+  is_finished   Boolean  @default(false)
+  started_date  DateTime
+  finished_date DateTime
+  deadline_date DateTime
+  created_date  DateTime
+  user_id       Int
+  users         users    @relation(fields: [user_id], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tags {
+  id   Int @id @default(autoincrement())
+  name Int @unique
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model todos {
+  id           Int      @id
+  content      String
+  is_finished  Boolean  @default(false)
+  created_date DateTime
+  user_id      Int
+  users        users    @relation(fields: [user_id], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model users {
+  id                                 Int                @id @default(autoincrement())
+  name                               String?            @db.VarChar(100)
+  username                           String?            @unique @db.VarChar(50)
+  email                              String             @unique @db.VarChar(50)
+  password                           String             @db.VarChar(120)
+  country                            String?            @db.VarChar(50)
+  city                               String?            @db.VarChar(50)
+  bio                                String?            @db.VarChar(255)
+  avatar_link                        String?
+  googleId                           String?
+  created_at                         DateTime           @default(now())
+  updated_at                         DateTime
+  role                               ROLE               @default(USER)
+  YappinLike                         YappinLike[]
+  follows_follows_followerIdTousers  follows[]          @relation("follows_followerIdTousers")
+  follows_follows_followingIdTousers follows[]          @relation("follows_followingIdTousers")
+  galleries                          galleries[]
+  preference_yappin                  preference_yappin?
+  reminders                          reminders[]
+  todos                              todos[]
+  yappins                            yappins[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model yappin_image {
+  id         Int     @id
+  image_link String
+  yappin_id  Int
+  yappins    yappins @relation(fields: [yappin_id], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model yappins {
+  id           Int            @id @default(autoincrement())
+  caption      String
+  total_likes  Int
+  is_Public    Int
+  created_at   DateTime
+  is_public    String
+  tag_one_id   Int
+  tag_two_id   Int
+  tag_three_id Int
+  tag_four_id  Int
+  user_id      Int
+  YappinLike   YappinLike[]
+  yappin_image yappin_image[]
+  users        users          @relation(fields: [user_id], references: [id])
+}
+
+enum ROLE {
+  ADMIN
+  USER
+}
