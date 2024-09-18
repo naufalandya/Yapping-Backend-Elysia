@@ -83,7 +83,7 @@ model todos {
 model users {
   id                                 Int                @id @default(autoincrement())
   name                               String?            @db.VarChar(100)
-  username                           String?            @unique @db.VarChar(50)
+  username                           String            @unique @db.VarChar(50)
   email                              String             @unique @db.VarChar(50)
   password                           String             @db.VarChar(120)
   country                            String?            @db.VarChar(50)

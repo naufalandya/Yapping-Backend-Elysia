@@ -1,5 +1,6 @@
 import { prisma } from "../libs"
 import { users } from "@prisma/client"
+import { jwt } from '@elysiajs/jwt'
 
 export const findUserByEmail = async (email : string) : Promise<users | null> => {
     try {
@@ -63,6 +64,18 @@ export const hashPassword = async(password : string) : Promise<string | undefine
         })
 
         return hashedPassword
+
+    } catch (err) {
+        throw err
+    }
+}
+
+export const matchPassword = async(password : string, hashedPassword : string) => {
+    try {
+
+        const isMatch = await Bun.password.verify(password, hashedPassword)
+
+        return isMatch
 
     } catch (err) {
         throw err

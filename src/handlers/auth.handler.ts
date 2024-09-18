@@ -1,5 +1,6 @@
+import { NotFoundError } from "elysia";
 import { BadRequest, Conflict } from "../error/error.handler";
-import { findUserByEmail, findUserByUsername, hashPassword, signupUser } from "../services/user.service";
+import { findUserByEmail, findUserByUsername, hashPassword, matchPassword, signupUser } from "../services/user.service";
 
 export const signupHandler = async (body: User) => {
     try {
@@ -32,3 +33,24 @@ export const signupHandler = async (body: User) => {
         throw err;
     }
 };
+
+export const signinHandler = async (body : User) => {
+    try {
+        const email = await findUserByEmail(body.email)
+
+        if (!email) {
+            throw new NotFoundError("email does not belong to any account !");
+        }
+
+        const password = await matchPassword(body.password, email.password)
+
+        if (!password) {
+            throw new BadRequest("password does not match !");
+        }
+
+        return { id : email.id, username : email.username }
+
+    } catch(err) {
+        throw err
+    }
+}

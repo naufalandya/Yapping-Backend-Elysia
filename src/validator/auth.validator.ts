@@ -1,7 +1,7 @@
 import { t } from "elysia"
 import { InvalidData } from "../error/error.handler"
 
-export const signupHook = {
+export const signupValidator = {
 
     // Validation
 
@@ -226,4 +226,65 @@ export const signupHook = {
     },
 
     
+}
+
+
+export const signinValidator = {
+
+    // Validation
+
+    body: t.Object({
+        email: t.String({
+            format: 'email',
+            required: true,
+            example: "whatiwillbein1000days@gmail.com",
+            minLength: 3,
+            maxLength: 50,
+            error( { errors, validator, type, value }){
+                if (errors[0].type == 45){
+                    throw new InvalidData("property email is required !")
+                }
+
+                if (errors[0].type == 50){
+                    throw new InvalidData("email has invalid format !")
+                }
+
+                if (errors[0].type == 54){
+                    throw new InvalidData("property email must be string !")
+                }
+
+                if (errors[0].type == 51){
+                    throw new InvalidData("the length character should not above 50 !")
+                }
+
+                if (errors[0].type == 52){
+                    throw new InvalidData("the length character should not below 3 !")
+                }
+            }
+        }),
+        password: t.String({
+            required: true,
+            example: "wakwakwaw90000",
+            minLength: 9,
+            maxLength: 256,
+            error( { errors, validator, type, value }){
+                if (errors[0].type == 45){
+                    throw new InvalidData("property password is required !")
+                }
+
+                if (errors[0].type == 54){
+                    throw new InvalidData("property password must be string !")
+                }
+
+                if (errors[0].type == 51){
+                    throw new InvalidData("the length character should not above 255 !")
+                }
+
+                if (errors[0].type == 52){
+                    throw new InvalidData("the length character should not below 9 !")
+                }
+            }
+            
+        })
+    }),    
 }

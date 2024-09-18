@@ -120,8 +120,7 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
             }
         },
         tags: [
-          { name: 'User', description: 'User Feature' },
-          { name: 'Shape', description: 'Calculate Shape' }
+          { name: 'Authentication', description: 'signin & signup feature' },
         ],
         components: {
           securitySchemes: {
@@ -145,17 +144,6 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
   .use(logger({
     mode: "live", 
   }))
-
-  // JWT configuration
-
-  .use(
-    jwt({
-        name: 'jwt',
-        secret: String(Bun.env.JWT_SECRET),
-        exp: '7d',
-        alg : 'HS512',
-    })
-  )
 
   //Compressing Response
 
