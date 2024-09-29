@@ -15,6 +15,12 @@ export class InvalidData extends Error {
   }
 }
 
+export class UnAuthorized extends Error {
+  constructor(public message: string) {
+      super(message)
+  }
+}
+
 export class Conflict extends Error {
   constructor(public message: string) {
       super(message)

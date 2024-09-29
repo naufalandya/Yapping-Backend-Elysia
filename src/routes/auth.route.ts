@@ -3,6 +3,7 @@ import { signinHandler, signupHandler } from "../handlers/auth.handler";
 import { signinValidator, signupValidator } from "../validator/auth.validator";
 import { jwt } from '@elysiajs/jwt';
 import { singinAPIdoc } from '../docs/auth.doc';
+import { bearer } from '@elysiajs/bearer';
 
 const authRoute = new Elysia( { prefix : '/auth'})
   // JWT configuration
@@ -14,6 +15,7 @@ const authRoute = new Elysia( { prefix : '/auth'})
             alg : 'HS512',
         })
     )
+    .use(bearer())
     .post("/signup", async ( { body }) => signupHandler(body as User), signupValidator as object )
     .post("/signin", async ( { params, body, set, jwt }) => {
         
@@ -31,5 +33,23 @@ const authRoute = new Elysia( { prefix : '/auth'})
 
     }
     , { ...signinValidator as object, ...singinAPIdoc as object })
+    .get("/who-am-i", () => {
+
+    }, {
+        async beforeHandle({ bearer, jwt, set }) {
+            if (!bearer) {
+                set.status = 400
+                set.headers[
+                    'WWW-Authenticate'
+                ] = `Bearer realm='sign', error="invalid_request"`
+
+                return 'Unauthorized'
+            }
+
+            return {
+                result : await jwt.verify(bearer)
+            }
+        },
+    })
 
 export default authRoute

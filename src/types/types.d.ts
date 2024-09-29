@@ -81,6 +81,32 @@ export interface SchemaOptions {
     }) => string | boolean | number | Object | void);
 }
 
+export type Yappins = {
+    id: number;
+    caption: string;
+    total_likes: number;
+    is_public: string;
+    location : string;
+    created_at: Date;
+    tag_one_id: number;
+    tag_one_name: string;
+    tag_two_id: number;
+    tag_two_name: string;
+    tag_three_id: number;
+    tag_three_name: string;
+    tag_four_id: number;
+    tag_four_name: string;
+    user_id: number;
+    total_comments: number;
+    image : Blob
+};
+
+export interface TUnsafe<T> extends TSchema {
+    [Kind]: string;
+    static: T;
+}
+
+  
 export type ErrorHandlerContext = {
     body: unknown;
     query: Record<string, string | undefined>;

@@ -15,11 +15,14 @@
     "@gtramontina.com/elysia-error-handler": "^1.0.1",
     "@prisma/client": "5.19.1",
     "@tqman/nice-logger": "^1.0.1",
+    "axios": "^1.7.7",
     "elysia": "latest",
     "elysia-basic-auth": "^1.0.7",
     "elysia-compress": "^1.2.1",
     "elysia-rate-limit": "^4.1.0",
-    "prisma": "^5.19.1"
+    "imagekit": "^5.2.0",
+    "prisma": "^5.19.1",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "bun-types": "latest"

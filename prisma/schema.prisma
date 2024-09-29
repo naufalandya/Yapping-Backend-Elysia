@@ -31,13 +31,6 @@ model follows {
   @@unique([followerId, followingId])
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model galleries {
-  id         Int      @id @default(autoincrement())
-  image_link String[]
-  user_id    Int
-  users      users    @relation(fields: [user_id], references: [id])
-}
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model preference_yappin {
@@ -70,16 +63,6 @@ model tags {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model todos {
-  id           Int      @id
-  content      String
-  is_finished  Boolean  @default(false)
-  created_date DateTime
-  user_id      Int
-  users        users    @relation(fields: [user_id], references: [id])
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
   id                                 Int                @id @default(autoincrement())
   name                               String?            @db.VarChar(100)
@@ -97,16 +80,14 @@ model users {
   YappinLike                         YappinLike[]
   follows_follows_followerIdTousers  follows[]          @relation("follows_followerIdTousers")
   follows_follows_followingIdTousers follows[]          @relation("follows_followingIdTousers")
-  galleries                          galleries[]
   preference_yappin                  preference_yappin?
   reminders                          reminders[]
-  todos                              todos[]
   yappins                            yappins[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model yappin_image {
-  id         Int     @id
+  id         Int     @id @default(autoincrement())
   image_link String
   yappin_id  Int
   yappins    yappins @relation(fields: [yappin_id], references: [id])
@@ -116,15 +97,20 @@ model yappin_image {
 model yappins {
   id           Int            @id @default(autoincrement())
   caption      String
-  total_likes  Int
-  is_Public    Int
+  total_likes  Int? @default(0)
+  is_public    Boolean @default(false)
   created_at   DateTime
-  is_public    String
-  tag_one_id   Int
-  tag_two_id   Int
-  tag_three_id Int
-  tag_four_id  Int
+  tag_one_id   Int?
+  tag_one_name String?
+  tag_two_id   Int?
+  tag_two_name String?
+  tag_three_id Int?
+  tag_three_name String?
+  tag_four_id  Int?
+  tag_four_name String?
   user_id      Int
+  location      String?
+  total_comments Int?
   YappinLike   YappinLike[]
   yappin_image yappin_image[]
   users        users          @relation(fields: [user_id], references: [id])
