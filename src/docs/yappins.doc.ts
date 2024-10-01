@@ -142,28 +142,6 @@ export const getMyYappinsAPIdoc = {
         summary: "Get public yappins from signed in user",
         tags: ['Yappins'],
         description: "Fetches a list of yappins. The results are paginated and sorted by creation date.",
-        parameters: [
-            {
-                name: "page",
-                in: "query",
-                description: "The page number for pagination",
-                required: false,
-                schema: {
-                    type: "integer",
-                    example: 1
-                }
-            },
-            {
-                name: "limit",
-                in: "query",
-                description: "The number of items per page",
-                required: false,
-                schema: {
-                    type: "integer",
-                    example: 10
-                }
-            }
-        ],
         responses: {
             200: {
                 description: "Successfully fetched the list of your yappins",
@@ -250,7 +228,7 @@ export const getMyYappinsAPIdoc = {
                 }
             },
             404: {
-                description: "No public yappins found",
+                description: "No yappins found",
                 content: {
                     "application/json": {
                         schema: {
@@ -272,4 +250,120 @@ export const getMyYappinsAPIdoc = {
             }
         }
     }
+};
+
+export const postMyYappinsAPIdoc = {
+
+    detail: {
+        summary: "Post yappins as signed-in user",
+        tags: ["Yappins"],
+        description: "Creates a new yappin with optional media (image or video). The request requires authentication using a Bearer token and supports tagging, captions, and location.",
+        responses: {
+          200: {
+            description: "Yappin created successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: {
+                      type: "boolean",
+                      example: true
+                    },
+                    message: {
+                      type: "string",
+                      example: "Success"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          400: {
+            description: "Invalid input data or content policy violation",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: {
+                      type: "boolean",
+                      example: false
+                    },
+                    error: {
+                      type: "string",
+                      description: "Error message",
+                      example: "Invalid input or image does not meet our policy"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized - Bearer token missing or invalid",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: {
+                      type: "boolean",
+                      example: false
+                    },
+                    error: {
+                      type: "string",
+                      description: "Error message",
+                      example: "Bearer token missing or invalid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          404: {
+            description: "No public yappins found",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: {
+                      type: "boolean",
+                      example: false
+                    },
+                    error: {
+                      type: "string",
+                      description: "Error message",
+                      example: "No public yappins found!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          500: {
+            description: "Internal server error",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: {
+                      type: "boolean",
+                      example: false
+                    },
+                    error: {
+                      type: "string",
+                      description: "Error message",
+                      example: "An unexpected error occurred"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
 };

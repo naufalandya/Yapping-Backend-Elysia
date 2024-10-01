@@ -129,3 +129,15 @@ export const singinAPIdoc = {
     },
 
 }
+
+
+export const whoamiAPIdoc = {
+
+    detail : {
+        summary : "Check user's token",
+        tags : ['Authentication'],
+        description : "authenticate registered user with token",
+
+    },
+
+}

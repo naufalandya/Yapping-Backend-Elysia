@@ -11,13 +11,13 @@ export const createYappin = async (is_public : boolean, tag_one_id : number, tag
                 user_id: Number(user.id),
                 is_public: is_public || undefined,
                 tag_one_id: tag_one_id,
-                tag_one_name: body.tag_one_name,
+                tag_one_name: body.tag_1_name,
                 tag_two_id: tag_two_id || undefined,
-                tag_two_name: body.tag_two_name || undefined,
+                tag_two_name: body.tag_2_name || undefined,
                 tag_three_id: tag_three_id || undefined,
-                tag_three_name: body.tag_three_name || undefined,
+                tag_three_name: body.tag_3_name || undefined,
                 tag_four_id: tag_four_id || undefined,
-                tag_four_name: body.tag_four_name || undefined,
+                tag_four_name: body.tag_4_name || undefined,
                 location: body.location || undefined
             },
         });

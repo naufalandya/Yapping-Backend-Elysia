@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { signinHandler, signupHandler } from "../handlers/auth.handler";
 import { signinValidator, signupValidator } from "../validator/auth.validator";
 import { jwt } from '@elysiajs/jwt';
-import { singinAPIdoc } from '../docs/auth.doc';
+import { singinAPIdoc, whoamiAPIdoc } from '../docs/auth.doc';
 import { bearer } from '@elysiajs/bearer';
 
 const authRoute = new Elysia( { prefix : '/auth'})
@@ -36,6 +36,8 @@ const authRoute = new Elysia( { prefix : '/auth'})
     .get("/who-am-i", () => {
 
     }, {
+
+        ...whoamiAPIdoc as object,
         async beforeHandle({ bearer, jwt, set }) {
             if (!bearer) {
                 set.status = 400

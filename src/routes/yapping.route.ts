@@ -1,6 +1,6 @@
 import Elysia, { error, t } from "elysia";
 import { prisma } from "../libs";
-import { getPublicYappinsAPIdoc } from '../docs/yappins.doc';
+import { getPublicYappinsAPIdoc, postMyYappinsAPIdoc } from '../docs/yappins.doc';
 import { isAuthenticated } from "../middlewares/isAuthenticated.middleware";
 import { Yappins } from "../types/types";
 import { BadRequest, InvalidData } from "../error/error.handler";
@@ -36,6 +36,12 @@ const YappingRoute = new Elysia()
                         select: {
                             username: true,
                             avatar_link: true
+                        }
+                    },
+                    yappin_image : {
+                        select : {
+                            image_link : true,
+                            type : true,
                         }
                     }
                 }
@@ -83,6 +89,12 @@ const YappingRoute = new Elysia()
                             username: true,
                             avatar_link: true
                         }
+                    },
+                    yappin_image : {
+                        select : {
+                            image_link : true,
+                            type : true
+                        }
                     }
                 }
             });
@@ -103,11 +115,16 @@ const YappingRoute = new Elysia()
     })
 
     .post("/my-yapping", async ({ user, body }: { user: { id: string; username: string, exp : number }, body : Yappins }) => {
+
+
         try {
-            let tag_one_id = Number(body.tag_one_id) 
-            let tag_two_id =  Number(body.tag_two_id) 
-            let tag_three_id =  Number(body.tag_three_id) 
-            let tag_four_id =  Number(body.tag_four_id) 
+
+            console.log(body)
+
+            let tag_one_id = Number(body.tag_1_id) 
+            let tag_two_id =  Number(body.tag_2_id) 
+            let tag_three_id =  Number(body.tag_3_id) 
+            let tag_four_id =  Number(body.tag_4_id) 
 
             if(typeof tag_one_id !== 'number' || typeof tag_two_id !== 'number' || typeof tag_three_id !== 'number' || typeof tag_four_id !== 'number'){
                 throw new BadRequest("tag id must be a number")
@@ -148,7 +165,8 @@ const YappingRoute = new Elysia()
                 await prisma.yappin_image.create({
                     data: {
                         yappin_id: yappin.id,
-                        image_link: uploadResponse.url
+                        image_link: uploadResponse.url,
+                        type : 'IMAGE'
                     }
                 });
             }
@@ -173,7 +191,8 @@ const YappingRoute = new Elysia()
                 await prisma.yappin_image.create({
                     data: {
                         yappin_id: yappin.id,
-                        image_link: uploadResponse.url
+                        image_link: uploadResponse.url,
+                        type : 'VIDEO'
                     }
                 });
             }
@@ -184,19 +203,31 @@ const YappingRoute = new Elysia()
             };
         
         } catch (err) {
+            console.log(err)
             throw err;
-        }
+        } 
         
     }, {
-        ...getPublicYappinsAPIdoc as object,
+        ...postMyYappinsAPIdoc as object,
+
+        headers: t.Object({
+            authorization: t.String({
+                example: "Bearer 12345",
+                minLength: 1,
+                maxLength: 500,
+                error( { errors, validator, type, value }){
+                    stringValidation("header", 1, 400, errors)
+                }            
+            }),
+        }),
 
         body : t.Object({
             image: t.File({
-                type : ['image/jpeg', 'image/png', 'image/webp'],
+                type : ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/mpeg', 'video/x-flv'],
                 error( { errors }) {
                     console.log(errors)
                     if (errors[0].type == 31){
-                        throw new InvalidData(`property image is required !`)
+                        throw new InvalidData(`property image/video is required !`)
                     }
                 }
             }),
@@ -218,7 +249,7 @@ const YappingRoute = new Elysia()
                 }
             })
             ),
-            tag_one_id: t.String({
+            tag_1_id: t.String({
                 required: true,
                 example: "1",
                 minLength: 1,
@@ -238,7 +269,7 @@ const YappingRoute = new Elysia()
                     
                 }
             ),
-            tag_one_name: t.String({
+            tag_1_name: t.String({
                 required: true,
                 example: "Ball",
                 minLength: 1,
@@ -248,8 +279,7 @@ const YappingRoute = new Elysia()
                 }
                 
             }),
-            tag_two_id: t.Optional(t.String({
-                required: true,
+            tag_2_id: t.Optional(t.String({
                 example: "1",
                 minLength: 1,
                 maxLength: 4,
@@ -257,7 +287,7 @@ const YappingRoute = new Elysia()
                     stringValidationOptional("tag_two_id", 1, 4, errors)
                 }  
             })),
-            tag_two_name: t.Optional(t.String(
+            tag_2_name: t.Optional(t.String(
                 {
                     example: "Vlog",
                     minLength: 1,
@@ -267,8 +297,7 @@ const YappingRoute = new Elysia()
                     }                    
                 }
             )),
-            tag_three_id: t.Optional(t.String({
-                required: true,
+            tag_3_id: t.Optional(t.String({
                 example: "1",
                 minLength: 1,
                 maxLength: 4,
@@ -276,7 +305,7 @@ const YappingRoute = new Elysia()
                     stringValidationOptional("tag_three_id", 1, 4, errors)
                 }  
             })),
-            tag_three_name: t.Optional(t.String(
+            tag_3_name: t.Optional(t.String(
                 {
                     example: "Outdoor",
                     minLength: 1,
@@ -287,8 +316,7 @@ const YappingRoute = new Elysia()
                     
                 }
             )),
-            tag_four_id: t.Optional(t.String({
-                required: true,
+            tag_4_id: t.Optional(t.String({
                 example: "1",
                 minLength: 1,
                 maxLength: 4,
@@ -296,7 +324,7 @@ const YappingRoute = new Elysia()
                     stringValidationOptional("tag_four_id", 1, 4, errors)
                 }  
             })),
-            tag_four_name: t.Optional(t.String(
+            tag_4_name: t.Optional(t.String(
                 {
                     example: "Fun",
                     minLength: 1,
@@ -307,8 +335,11 @@ const YappingRoute = new Elysia()
                     
                 }
             )),
-          })
+          }),
 
+          
+
+          
     })
 
 

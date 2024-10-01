@@ -22,12 +22,15 @@ export const isAuthenticated = (app: Elysia) =>
          })
         )
     .derive( async ({ bearer, jwt }) => {
+
         return {
             user : await jwt.verify(bearer)
         }
 
     })
     .onBeforeHandle ( async ({ user }) => {
+
+        console.log("lol")
 
         if(!user) {
             throw new UnAuthorized("Unauthorized")

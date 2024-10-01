@@ -88,14 +88,14 @@ export type Yappins = {
     is_public: string;
     location : string;
     created_at: Date;
-    tag_one_id: number;
-    tag_one_name: string;
-    tag_two_id: number;
-    tag_two_name: string;
-    tag_three_id: number;
-    tag_three_name: string;
-    tag_four_id: number;
-    tag_four_name: string;
+    tag_1_id: number;
+    tag_1_name: string;
+    tag_2_id: number;
+    tag_2_name: string;
+    tag_3_id: number;
+    tag_3_name: string;
+    tag_4_id: number;
+    tag_4_name: string;
     user_id: number;
     total_comments: number;
     image : Blob
@@ -117,4 +117,56 @@ export type ErrorHandlerContext = {
   };
   
 export type ErrorHandler = (context: ErrorHandlerContext) => void;
+  
+
+export type Reminder = {
+    id: number;         
+    title : string;         
+    content: string;              
+    is_finished: boolean ;        
+    started_date: Date;         
+    finished_date: Date;    
+    deadline_date: Date;     
+    created_date: Date;
+    location : string;    
+    is_public: boolean | string;       
+    user_id: number;        
+  };
+
+
+  export type User = {
+    id: number;
+    name?: string | null;     
+    username: string;
+    email: string;
+    password: string;
+    country?: string | null;  
+    city?: string | null;      
+    bio?: string | null;      
+    avatar_link?: string | null; 
+    googleId?: string | null;    
+    created_at: Date;
+    updated_at: Date;
+    role: ROLE;
+    preference_yappin?: PreferenceYappin | null;
+  };
+  
+  export type PreferenceYappin = {
+    id: number;
+    preference_tag_one: string;
+    total_engage_one: number;
+    preference_tag_two: string;
+    total_engage_two: number;
+    preference_tag_three: string;
+    total_engage_three: number;
+    preference_tag_four: string;
+    total_engage_four: number;
+    user_id: number; 
+    user?: User | null;  
+  };
+  
+  export enum ROLE {
+    USER = "USER",
+    ADMIN = "ADMIN",
+  }
   

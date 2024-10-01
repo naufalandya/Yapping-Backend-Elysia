@@ -7,6 +7,10 @@ import authRoute from "./routes/auth.route";
 import YappingRoute from "./routes/yapping.route";
 import swagger from "@elysiajs/swagger";
 import { ErrorNotFound, BadRequest, InvalidData, Conflict, UnAuthorized } from "./error/error.handler";
+import SearchUserRoute from "./routes/search.route";
+import SearchReferenceRoute from "./routes/reference.route";
+import ReminderRoute from "./routes/reminder.route";
+import UserRoute from "./routes/user.route";
 
 // SETUP ORIGIN REQUEST & ENV
 
@@ -24,21 +28,31 @@ if (ENV === "production") {
 // INITIALIZE ELYSIA OBJECT
 
 const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Conflict, UnAuthorized } )
+  .onAfterHandle(({ request, set }) => {
+    // Only process CORS requests
+    if (request.method !== "OPTIONS") return;
+
+    const allowHeader = set.headers["Access-Control-Allow-Headers"];
+    if (allowHeader === "*") {
+      set.headers["Access-Control-Allow-Headers"] =
+        request.headers.get("Access-Control-Request-Headers") ?? "";
+    }
+  })
 
   // USE ORIGIN CORS ALLOWING REQUEST FROM ANOTHER DOMAIN
 
   .use(cors(
     {
-      origin : [String(ORIGIN_REQUEST), "https://bw2nj1xt-3500.asse.devtunnels.ms"]
+      origin : ['http://localhost:5173', 'http://localhost:5173/', 'localhost:5173', String(ORIGIN_REQUEST), "https://bw2nj1xt-3500.asse.devtunnels.ms", "http://bw2nj1xt-3500.asse.devtunnels.ms", "https://bw2nj1xt-5173.asse.devtunnels.ms", "https://bw2nj1xt-5173.asse.devtunnels.ms/", "bw2nj1xt-5173.asse.devtunnels.ms"],
     }
   ))
 
   // Rate Limiter, Protect Endpoint
-  .use(rateLimit(
-    {
-      errorResponse : "ups, limit reached ! 😭"
-    }
-  ))
+  // .use(rateLimit(
+  //   {
+  //     errorResponse : "ups, limit reached ! 😭"
+  //   }
+  // ))
   .trace(async ({ onHandle }) => {
     onHandle(({ begin, onStop }) => {
     onStop(({ end }) => {
@@ -48,6 +62,7 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
   })
 
   .onError( ( { code, set, error }) =>  {
+    console.log(error)
     switch (code) {
     case 'ErrorNotFound':
 
@@ -115,6 +130,7 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
  // API documentation
 
  .use(swagger({
+  exclude : ['/api-docs', '/', '/api-docs/json'],
   scalarConfig : {
   theme : 'none',
   metaData : {
@@ -156,6 +172,7 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
 
   .use(staticPlugin())
 
+
   // LOGGING AND MONITORING
 
   .use(logger({
@@ -168,7 +185,11 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
 
   // List of route to be used
   .use(authRoute)
+  .use(UserRoute)
+  .use(ReminderRoute)
   .use(YappingRoute)
+  .use(SearchUserRoute)
+  .use(SearchReferenceRoute)
 
   //Run App  
 

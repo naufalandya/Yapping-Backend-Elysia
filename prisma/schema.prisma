@@ -35,23 +35,31 @@ model follows {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model preference_yappin {
   id                   Int   @id @default(autoincrement())
-  preference_tag_one   Int
-  preference_tag_two   Int
-  preference_tag_three Int
-  preference_tag_four  Int
+  preference_tag_one   String?
+  total_engage_one  Int?
+  preference_tag_two   String?
+  total_engage_two  Int?
+  preference_tag_three String?
+  total_engage_three  Int?
+  preference_tag_four  String?
+  total_engage_four  Int?
   user_id              Int   @unique
   users                users @relation(fields: [user_id], references: [id])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model reminders {
-  id            Int      @id
+  id            Int      @id @default(autoincrement())
+  title         String
   content       String
   is_finished   Boolean  @default(false)
   started_date  DateTime
-  finished_date DateTime
+  finished_date DateTime?
   deadline_date DateTime
   created_date  DateTime
+  is_public   Boolean
+  location String
+
   user_id       Int
   users         users    @relation(fields: [user_id], references: [id])
 }
@@ -83,6 +91,8 @@ model users {
   preference_yappin                  preference_yappin?
   reminders                          reminders[]
   yappins                            yappins[]
+  notification                       notifications[]
+
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -90,7 +100,13 @@ model yappin_image {
   id         Int     @id @default(autoincrement())
   image_link String
   yappin_id  Int
+  type       EXTENSION
   yappins    yappins @relation(fields: [yappin_id], references: [id])
+}
+
+enum EXTENSION {
+  VIDEO
+  IMAGE
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -113,6 +129,20 @@ model yappins {
   total_comments Int?
   YappinLike   YappinLike[]
   yappin_image yappin_image[]
+  users        users          @relation(fields: [user_id], references: [id])
+}
+
+model list_preference {
+  id Int @id @default(autoincrement())
+  name String
+}
+model notifications {
+  id Int @id @default(autoincrement())
+  detail String
+  created_at DateTime
+
+  user_id Int
+
   users        users          @relation(fields: [user_id], references: [id])
 }
 
