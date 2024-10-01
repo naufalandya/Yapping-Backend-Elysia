@@ -21,10 +21,11 @@ export const isAuthenticated = (app: Elysia) =>
 
          })
         )
-    .derive( async ({ bearer, jwt }) => {
+    .derive( async ({ bearer, jwt, set }) => {
 
         return {
-            user : await jwt.verify(bearer)
+            user : await jwt.verify(bearer),
+            set : set
         }
 
     })
