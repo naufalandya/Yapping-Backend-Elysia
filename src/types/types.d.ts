@@ -153,13 +153,13 @@ export type Reminder = {
   
   export type PreferenceYappin = {
     id: number;
-    preference_tag_one: string;
+    preference_tag_1: string;
     total_engage_one: number;
-    preference_tag_two: string;
+    preference_tag_2: string;
     total_engage_two: number;
-    preference_tag_three: string;
+    preference_tag_3: string;
     total_engage_three: number;
-    preference_tag_four: string;
+    preference_tag_4: string;
     total_engage_four: number;
     user_id: number; 
     user?: User | null;  

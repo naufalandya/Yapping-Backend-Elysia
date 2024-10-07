@@ -10,11 +10,12 @@ datasource db {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model YappinLike {
-  id        Int     @id @default(autoincrement())
-  user_id   Int
-  yappin_id Int
-  users     users   @relation(fields: [user_id], references: [id])
-  yappins   yappins @relation(fields: [yappin_id], references: [id])
+  id                 Int                  @id @default(autoincrement())
+  user_id            Int
+  yappin_id          Int?
+  users              users                @relation(fields: [user_id], references: [id])
+  yappins            yappins?             @relation(fields: [yappin_id], references: [id])
+  like_notifications like_notifications[]
 
   @@unique([user_id, yappin_id])
 }
@@ -31,37 +32,35 @@ model follows {
   @@unique([followerId, followingId])
 }
 
-
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model preference_yappin {
-  id                   Int   @id @default(autoincrement())
+  id                   Int     @id @default(autoincrement())
   preference_tag_one   String?
-  total_engage_one  Int?
   preference_tag_two   String?
-  total_engage_two  Int?
   preference_tag_three String?
-  total_engage_three  Int?
   preference_tag_four  String?
-  total_engage_four  Int?
-  user_id              Int   @unique
-  users                users @relation(fields: [user_id], references: [id])
+  user_id              Int     @unique
+  total_engage_four    Int?
+  total_engage_one     Int?
+  total_engage_three   Int?
+  total_engage_two     Int?
+  users                users   @relation(fields: [user_id], references: [id])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model reminders {
-  id            Int      @id @default(autoincrement())
-  title         String
+  id            Int       @id @default(autoincrement())
   content       String
-  is_finished   Boolean  @default(false)
+  is_finished   Boolean   @default(false)
   started_date  DateTime
   finished_date DateTime?
   deadline_date DateTime
   created_date  DateTime
-  is_public   Boolean
-  location String
-
   user_id       Int
-  users         users    @relation(fields: [user_id], references: [id])
+  is_public     Boolean
+  location      String
+  title         String
+  users         users     @relation(fields: [user_id], references: [id])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -72,78 +71,110 @@ model tags {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
-  id                                 Int                @id @default(autoincrement())
-  name                               String?            @db.VarChar(100)
-  username                           String            @unique @db.VarChar(50)
-  email                              String             @unique @db.VarChar(50)
-  password                           String             @db.VarChar(120)
-  country                            String?            @db.VarChar(50)
-  city                               String?            @db.VarChar(50)
-  bio                                String?            @db.VarChar(255)
-  avatar_link                        String?
-  googleId                           String?
-  created_at                         DateTime           @default(now())
-  updated_at                         DateTime
-  role                               ROLE               @default(USER)
-  YappinLike                         YappinLike[]
-  follows_follows_followerIdTousers  follows[]          @relation("follows_followerIdTousers")
-  follows_follows_followingIdTousers follows[]          @relation("follows_followingIdTousers")
-  preference_yappin                  preference_yappin?
-  reminders                          reminders[]
-  yappins                            yappins[]
-  notification                       notifications[]
-
+  id                                                         Int                     @id @default(autoincrement())
+  name                                                       String?                 @db.VarChar(100)
+  username                                                   String                  @unique @db.VarChar(50)
+  email                                                      String                  @unique @db.VarChar(50)
+  password                                                   String                  @db.VarChar(120)
+  country                                                    String?                 @db.VarChar(50)
+  city                                                       String?                 @db.VarChar(50)
+  bio                                                        String?                 @db.VarChar(255)
+  avatar_link                                                String?
+  googleId                                                   String?
+  created_at                                                 DateTime                @default(now())
+  updated_at                                                 DateTime
+  role                                                       ROLE                    @default(USER)
+  YappinComment                                              YappinComment[]
+  YappinLike                                                 YappinLike[]
+  comment_notifications_comment_notifications_by_idTousers   comment_notifications[] @relation("comment_notifications_by_idTousers")
+  comment_notifications_comment_notifications_user_idTousers comment_notifications[] @relation("comment_notifications_user_idTousers")
+  follows_follows_followerIdTousers                          follows[]               @relation("follows_followerIdTousers")
+  follows_follows_followingIdTousers                         follows[]               @relation("follows_followingIdTousers")
+  like_notifications_like_notifications_by_idTousers         like_notifications[]    @relation("like_notifications_by_idTousers")
+  like_notifications                                         like_notifications[]
+  preference_yappin                                          preference_yappin?
+  reminders                                                  reminders[]
+  yappins                                                    yappins[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model yappin_image {
-  id         Int     @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   image_link String
-  yappin_id  Int
+  yappin_id  Int?
   type       EXTENSION
-  yappins    yappins @relation(fields: [yappin_id], references: [id])
+  yappins    yappins?  @relation(fields: [yappin_id], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model yappins {
+  id             Int             @id @default(autoincrement())
+  caption        String
+  total_likes    Int?            @default(0)
+  created_at     DateTime
+  tag_one_id     Int?
+  tag_two_id     Int?
+  tag_three_id   Int?
+  tag_four_id    Int?
+  user_id        Int
+  tag_four_name  String?
+  tag_one_name   String?
+  tag_three_name String?
+  tag_two_name   String?
+  is_public      Boolean         @default(false)
+  total_comments Int?
+  location       String?
+  YappinComment  YappinComment[]
+  YappinLike     YappinLike[]
+  yappin_image   yappin_image[]
+  users          users           @relation(fields: [user_id], references: [id])
+}
+
+model list_preference {
+  id   Int    @id @default(autoincrement())
+  name String
+}
+
+model like_notifications {
+  id                                    Int        @id @default(autoincrement())
+  detail                                String
+  redirect                              String?
+  created_at                            DateTime   @default(now())
+  user_id                               Int
+  yappin_like_id                        Int
+  by_id                                 Int
+  users_like_notifications_by_idTousers users      @relation("like_notifications_by_idTousers", fields: [by_id], references: [id])
+  users                                 users      @relation(fields: [user_id], references: [id])
+  YappinLike                            YappinLike @relation(fields: [yappin_like_id], references: [id])
+}
+
+model YappinComment {
+  id                    Int                     @id @default(autoincrement())
+  content               String
+  created_at            DateTime                @default(now())
+  user_id               Int
+  yappin_id             Int
+  users                 users                   @relation(fields: [user_id], references: [id])
+  yappins               yappins                 @relation(fields: [yappin_id], references: [id])
+  comment_notifications comment_notifications[]
+}
+
+model comment_notifications {
+  id                                         Int           @id @default(autoincrement())
+  detail                                     String
+  redirect                                   String?
+  created_at                                 DateTime      @default(now())
+  user_id                                    Int
+  yappin_comment_id                          Int
+  by_id                                      Int
+  users_comment_notifications_by_idTousers   users         @relation("comment_notifications_by_idTousers", fields: [by_id], references: [id])
+  users_comment_notifications_user_idTousers users         @relation("comment_notifications_user_idTousers", fields: [user_id], references: [id])
+  YappinComment                              YappinComment @relation(fields: [yappin_comment_id], references: [id])
 }
 
 enum EXTENSION {
   VIDEO
   IMAGE
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model yappins {
-  id           Int            @id @default(autoincrement())
-  caption      String
-  total_likes  Int? @default(0)
-  is_public    Boolean @default(false)
-  created_at   DateTime
-  tag_one_id   Int?
-  tag_one_name String?
-  tag_two_id   Int?
-  tag_two_name String?
-  tag_three_id Int?
-  tag_three_name String?
-  tag_four_id  Int?
-  tag_four_name String?
-  user_id      Int
-  location      String?
-  total_comments Int?
-  YappinLike   YappinLike[]
-  yappin_image yappin_image[]
-  users        users          @relation(fields: [user_id], references: [id])
-}
-
-model list_preference {
-  id Int @id @default(autoincrement())
-  name String
-}
-model notifications {
-  id Int @id @default(autoincrement())
-  detail String
-  created_at DateTime
-
-  user_id Int
-
-  users        users          @relation(fields: [user_id], references: [id])
 }
 
 enum ROLE {

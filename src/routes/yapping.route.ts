@@ -11,11 +11,80 @@ import { createYappin } from "../services/yappin.service";
 
 const YappingRoute = new Elysia()
     .use(isAuthenticated)
-    .get("/yapping", async ( { body }) => {
+    .get("/yapping/:id", async ( { user, params }: { user: { id: string; name: string, exp : number }, params : { id : string} }) => {
+        try {
+                        
+            const result = await prisma.yappins.findUnique({
+                where: {
+                    is_public: true,
+                    id: Number(params.id)
+                },
+                select: {
+                    id: true,
+                    caption: true,
+                    total_likes: true,
+                    is_public: true,
+                    location: true,
+                    created_at: true,
+                    users: {
+                        select: {
+                            username: true,
+                            avatar_link: true
+                        }
+                    },
+                    yappin_image: {
+                        select: {
+                            image_link: true,
+                            type: true,
+                        }
+                    },
+                    // Tambahkan relasi untuk memeriksa apakah user telah like
+                    YappinLike: {
+                        where: {
+                            user_id: Number(user.id)
+                        },
+                        select: {
+                            id: true
+                        }
+                    }
+                }
+            });
+            
+            // Pastikan `result` tidak null
+            if (!result) {
+                return {
+                    status: false,
+                    message: "Yappin not found",
+                    data: null
+                };
+            }
+            
+            // Tambahkan properti `isLiked` berdasarkan apakah `YappinLike` ada atau tidak
+            const updatedPost = {
+                ...result,
+                isLiked: result.YappinLike.length > 0 // Jika ada like dari user, maka isLiked akan true
+            };
+            
+            // Kembalikan hasil dengan status sukses
+            return {
+                status: true,
+                message: "Success",
+                data: updatedPost
+            };
+            
+        } catch (err) {
+            throw err
+        }
+    }, {
+    })
+    .get("/yapping", async ( { user }: { user: { id: string; name: string, exp : number } }) => {
         try {
 
             const page = 1; 
             const limit = 10;
+            
+            // Ambil user_id dari token yang terotentikasi
+            const userId = user.id; // Pastikan `userId` diambil dari otentikasi JWT
             
             const result = await prisma.yappins.findMany({
                 where: {
@@ -31,6 +100,7 @@ const YappingRoute = new Elysia()
                     caption: true,
                     total_likes: true,
                     is_public: true,
+                    location :true,
                     created_at: true,
                     users: {
                         select: {
@@ -43,14 +113,29 @@ const YappingRoute = new Elysia()
                             image_link : true,
                             type : true,
                         }
+                    },
+                    // Tambahkan relasi untuk memeriksa apakah user telah like
+                    YappinLike: {
+                        where: {
+                            user_id: Number(user.id)
+                        },
+                        select: {
+                            id: true
+                        }
                     }
                 }
             });
+            
+            // Map the result to include `isLiked` status
+            const updatedPosts = result.map(post => ({
+                ...post,
+                isLiked: post.YappinLike.length > 0 // Jika ada like dari user, maka isLiked akan true
+            }));
 
             return {
                 status: true,
                 message: "Success",
-                data : result
+                data : updatedPosts
             };
         } catch (err) {
             throw err
@@ -139,10 +224,20 @@ const YappingRoute = new Elysia()
                     is_public = false;
             }
 
+            const response = await fetch('http://localhost:5000/check-text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text : body.caption })
+            });
+
+            if(!response.ok){
+                throw new BadRequest("Your caption contains negativity, bad word, or profanity !")
+            }
+
             const arrayBuffer = await body.image.arrayBuffer();
-
             const mimeType= await detectMimeType(arrayBuffer)
-
             const mediaBuffer = Buffer.from(arrayBuffer)
 
             if(mimeType && (mimeType.startsWith('image/'))){
@@ -153,13 +248,11 @@ const YappingRoute = new Elysia()
                 });   
                 
                 const analysisResult = await analysisResponse.json();
-
                 if(analysisResult.message !== "success"){
                     throw new BadRequest("image does not meet our policy")
                 }
 
                 const uploadResponse = await uploadImage(mediaBuffer, user.username + String(new Date())); 
-
                 const yappin = await createYappin(is_public, tag_one_id, tag_two_id, tag_three_id, tag_four_id, user, body)
         
                 await prisma.yappin_image.create({
@@ -181,7 +274,7 @@ const YappingRoute = new Elysia()
                 const analysisResult = await analysisResponse.json();
 
                 if(analysisResult.message !== "success"){
-                    throw new BadRequest("image does not meet our policy")
+                    throw new BadRequest("video does not meet our policy")
                 }
 
                 const uploadResponse = await uploadVideo(mediaBuffer, user.username + String(new Date())); 

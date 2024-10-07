@@ -11,6 +11,7 @@ import SearchUserRoute from "./routes/search.route";
 import SearchReferenceRoute from "./routes/reference.route";
 import ReminderRoute from "./routes/reminder.route";
 import UserRoute from "./routes/user.route";
+import NewsRoute from "./routes/news.route";
 
 // SETUP ORIGIN REQUEST & ENV
 
@@ -43,7 +44,7 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
 
   .use(cors(
     {
-      origin : ['http://localhost:5173', 'http://localhost:5173/', 'localhost:5173', String(ORIGIN_REQUEST), "https://bw2nj1xt-3500.asse.devtunnels.ms", "http://bw2nj1xt-3500.asse.devtunnels.ms", "https://bw2nj1xt-5173.asse.devtunnels.ms", "https://bw2nj1xt-5173.asse.devtunnels.ms/", "bw2nj1xt-5173.asse.devtunnels.ms"],
+      origin : ['http://localhost:5173', 'http://localhost:5173/', 'localhost:5173', String(ORIGIN_REQUEST), "https://bw2nj1xt-3500.asse.devtunnels.ms", "http://103.196.155.16:5173/", "http://103.196.155.16:5173", "http://alobro.my.id", "http://alobro.my.id/", "http://bw2nj1xt-3500.asse.devtunnels.ms", "https://bw2nj1xt-5173.asse.devtunnels.ms", "https://bw2nj1xt-5173.asse.devtunnels.ms/", "bw2nj1xt-5173.asse.devtunnels.ms"],
     }
   ))
 
@@ -185,6 +186,7 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
 
   // List of route to be used
   .use(authRoute)
+  .use(NewsRoute)
   .use(UserRoute)
   .use(ReminderRoute)
   .use(YappingRoute)

@@ -27,6 +27,7 @@ const authRoute = new Elysia( { prefix : '/auth'})
             status : true,
             message : "success",
             data : {
+                id : result.id,
                 token : token
             }
         }

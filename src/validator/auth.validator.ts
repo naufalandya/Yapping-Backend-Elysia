@@ -21,11 +21,11 @@ export const signupValidator = {
                 }
 
                 if (errors[0].type == 51){
-                    throw new InvalidData("the length character should not above 25 !")
+                    throw new InvalidData("the length of name should not above 25 !")
                 }
 
                 if (errors[0].type == 52){
-                    throw new InvalidData("the length character should not below 8 !")
+                    throw new InvalidData("the length of name should not below 3 !")
                 }
             }
         }),

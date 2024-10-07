@@ -3,6 +3,7 @@ import { isAuthenticated } from "../middlewares/isAuthenticated.middleware";
 import { prisma } from "../libs";
 import { stringValidation, stringValidationOptional } from '../error/validation.error';
 import { User } from "../types/types";
+import { Conflict } from "../error/error.handler";
 
 const UserRoute = new Elysia()
     .use(isAuthenticated)
@@ -16,6 +17,7 @@ const UserRoute = new Elysia()
                         id : Number(user.id)
                     },
                     select : {
+                        id : true,
                         name : true,
                         username : true,
                         bio : true,
@@ -61,25 +63,37 @@ const UserRoute = new Elysia()
             
                         const existingUser = await prisma.users.findUnique({
                             where: { id: userId },
-                            select: {
-                                name: true,
-                                username: true,
-                                bio: true,
-                                created_at: true,
-                                avatar_link: true,
-                            },
+                            // select: {
+                            //     name: true,
+                            //     username: true,
+                            //     bio: true,
+                            //     created_at: true,
+                            //     avatar_link: true,
+                            // },
                         });
 
-                        console.log("tes")
-            
                         if (!existingUser) {
                             return {
                                 status: false,
                                 message: 'User not found',
                             };
                         }
-            
-                        console.log(body);
+
+                        if(body.username) {
+                            const isUsername = await prisma.users.findUnique({
+                                where : {
+                                    username : body.username
+                                }
+                            })
+
+                            if(isUsername?.username === body.username){
+                                throw new Conflict("You already used this username buddy !")
+                            }
+
+                            if(isUsername){
+                                throw new Conflict("Oh no !, this username is already used !")
+                            }
+                        }
             
                         const updatedUser = await prisma.users.update({
                             where: { id: userId },
@@ -90,28 +104,30 @@ const UserRoute = new Elysia()
                                 updated_at: new Date(), 
                             },
                         });
-            
+                        
+                        console.log(body)
+
                         const upsertPreference = await prisma.preference_yappin.upsert({
                             where: { user_id: userId },
                             update: {
-                                preference_tag_one: body.preference_yappin?.preference_tag_one,
+                                preference_tag_one: body.preference_yappin?.preference_tag_1,
                                 total_engage_one: body.preference_yappin?.total_engage_one,
-                                preference_tag_two: body.preference_yappin?.preference_tag_two,
+                                preference_tag_two: body.preference_yappin?.preference_tag_2,
                                 total_engage_two: body.preference_yappin?.total_engage_two,
-                                preference_tag_three: body.preference_yappin?.preference_tag_three,
+                                preference_tag_three: body.preference_yappin?.preference_tag_3,
                                 total_engage_three: body.preference_yappin?.total_engage_three,
-                                preference_tag_four: body.preference_yappin?.preference_tag_four,
+                                preference_tag_four: body.preference_yappin?.preference_tag_4,
                                 total_engage_four: body.preference_yappin?.total_engage_four,
                             },
                             create: {
                                 user_id: userId,
-                                preference_tag_one: body.preference_yappin?.preference_tag_one,
+                                preference_tag_one: body.preference_yappin?.preference_tag_1,
                                 total_engage_one: body.preference_yappin?.total_engage_one || 0,
-                                preference_tag_two: body.preference_yappin?.preference_tag_two,
+                                preference_tag_two: body.preference_yappin?.preference_tag_2,
                                 total_engage_two: body.preference_yappin?.total_engage_two || 0,
-                                preference_tag_three: body.preference_yappin?.preference_tag_three,
+                                preference_tag_three: body.preference_yappin?.preference_tag_3,
                                 total_engage_three: body.preference_yappin?.total_engage_three || 0,
-                                preference_tag_four: body.preference_yappin?.preference_tag_four,
+                                preference_tag_four: body.preference_yappin?.preference_tag_4,
                                 total_engage_four: body.preference_yappin?.total_engage_four || 0,
                             },
                         });
@@ -161,10 +177,10 @@ const UserRoute = new Elysia()
                         ),
                         preference_yappin: t.Optional(
                             t.Object({
-                                preference_tag_one: t.Optional(t.String()),
-                                preference_tag_two: t.Optional(t.String()),
-                                preference_tag_three: t.Optional(t.String()),
-                                preference_tag_four: t.Optional(t.String()),
+                                preference_tag_1: t.Optional(t.String()),
+                                preference_tag_2: t.Optional(t.String()),
+                                preference_tag_3: t.Optional(t.String()),
+                                preference_tag_4: t.Optional(t.String()),
                             })
                         ),
                     }),
@@ -183,7 +199,8 @@ const UserRoute = new Elysia()
 
     .get("/profile-preference", async ({ user }: { user: { id: string; name: string, exp : number } }) => {
         try {
-            const preferences = await prisma.preference_yappin.findMany({
+
+            const preferences = await prisma.preference_yappin.findUnique({
                 where: {
                     user_id: Number(user.id),
                 },
@@ -200,7 +217,7 @@ const UserRoute = new Elysia()
             });
             
             // Check if preferences are empty
-            if (preferences.length === 0) {
+            if (!preferences) {
                 return {
                     status: true,
                     message: 'No preferences found!',
@@ -210,7 +227,7 @@ const UserRoute = new Elysia()
             }
             
             // Use the first preference object
-            const preference = preferences[0];
+            const preference = preferences;
             
             // Extract and filter preferences
             const tags = [
@@ -293,15 +310,17 @@ const UserRoute = new Elysia()
     })
     .get("/profile/daily-analytic", async ({ user }: { user: { id: string; name: string, exp : number } }) => {
         try {
+        
             // Define the date range for the past 7 days
             const today = new Date();
             const lastWeek = new Date(today);
             lastWeek.setDate(today.getDate() - 7);
-    
-            // Fetch the number of yappins created in the last 7 days
+        
+            // Fetch the number of yappins created by the logged-in user in the last 7 days
             const yappinStats = await prisma.yappins.groupBy({
                 by: ['created_at'],
                 where: {
+                    user_id: Number(user.id), // filter by the logged-in user's ID
                     created_at: {
                         gte: lastWeek,
                         lte: today,
@@ -314,11 +333,12 @@ const UserRoute = new Elysia()
                     created_at: 'asc',
                 },
             });
-    
-            // Fetch the number of reminders created in the last 7 days
+        
+            // Fetch the number of reminders created by the logged-in user in the last 7 days
             const reminderStats = await prisma.reminders.groupBy({
                 by: ['created_date'],
                 where: {
+                    user_id:  Number(user.id), // filter by the logged-in user's ID
                     created_date: {
                         gte: lastWeek,
                         lte: today,
@@ -331,22 +351,22 @@ const UserRoute = new Elysia()
                     created_date: 'asc',
                 },
             });
-    
-            const yappinCount: { [key: string]: number } = {}; // Define index signature
+        
+            const yappinCount: { [key: string]: number } = {};
             yappinStats.forEach((stat) => {
                 const date = new Date(stat.created_at).toLocaleDateString();
                 yappinCount[date] = (yappinCount[date] || 0) + stat._count.id;
             });
-    
-            const reminderCount: { [key: string]: number } = {}; // Define index signature
+        
+            const reminderCount: { [key: string]: number } = {};
             reminderStats.forEach((stat) => {
                 const date = new Date(stat.created_date).toLocaleDateString();
                 reminderCount[date] = (reminderCount[date] || 0) + stat._count.id;
             });
-    
+        
             let yappinSummary = '';
             const totalYappins = Object.values(yappinCount).reduce((acc, count) => acc + count, 0);
-    
+        
             if (totalYappins > 5) {
                 yappinSummary = "You are very unproductive today with more than 5 yapping posts! It might be time to explore educational content on platforms like Udemy, edX, or Coursera to enhance your skills.";
             } else if (totalYappins > 2) {
@@ -356,10 +376,10 @@ const UserRoute = new Elysia()
             } else {
                 yappinSummary = "No yapping posts in a week! Come on, try to be more active!";
             }
-            
+        
             let reminderSummary = '';
             const totalReminders = Object.values(reminderCount).reduce((acc, count) => acc + count, 0);
-            
+        
             if (totalReminders > 7) {
                 reminderSummary = "Be careful, too many reminders in a day can make you tired and worn out!";
             } else if (totalReminders >= 3) {
@@ -369,8 +389,7 @@ const UserRoute = new Elysia()
             } else {
                 reminderSummary = "No reminders today! Maybe you can plan some activities.";
             }
-            
-    
+        
             return {
                 status: true,
                 message: 'Daily statistics retrieved successfully!',
@@ -383,10 +402,14 @@ const UserRoute = new Elysia()
                     },
                 },
             };
-    
-        } catch (err) {
-            throw err;
+        } catch (error) {
+            console.error('Error fetching user daily statistics:', error);
+            return {
+                status: false,
+                message: 'Failed to retrieve daily statistics.',
+            };
         }
+        
     }, {
         headers: t.Object({
             authorization: t.String({
