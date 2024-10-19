@@ -8,9 +8,103 @@ import { stringValidation, stringValidationOptional } from '../error/validation.
 import { uploadImage, uploadVideo } from "../utils/imagekit.util";
 import { detectMimeType } from "../utils/checkmime.util";
 import { createYappin } from "../services/yappin.service";
+import db from "../libs/drizzle.lib";
+import { users, yappinImage, yappins } from '../../drizzle/schema';
+import { desc, eq, gt } from "drizzle-orm";
+import { containsValidLinks } from "../utils/checkLink.util";
 
 const YappingRoute = new Elysia()
     .use(isAuthenticated)
+    .get("/yapping/p/:username", async ( { user, params }: { user: { id: string; name: string, exp : number }, params : { username : string} }) => {
+        try {
+
+
+            const user = await prisma.users.findUnique({
+                where : {
+                    username : params.username
+                }
+            })
+
+            if(!user){
+                return {
+                    status: false,
+                    message: "User not found",
+                    data: null
+                };
+            }
+
+            const page = 1; 
+            const limit = 10;
+                        
+            const result = await prisma.yappins.findMany({
+                orderBy: {
+                    created_at: 'desc',
+                },
+                skip: (page - 1) * limit,
+                take: limit, 
+                where: {
+                    is_public: true,
+                    user_id: Number(user.id)
+                },
+                select: {
+                    id: true,
+                    caption: true,
+                    total_likes: true,
+                    total_comments : true,
+                    is_public: true,
+                    location: true,
+                    created_at: true,
+                    users: {
+                        select: {
+                            username: true,
+                            avatar_link: true
+                        }
+                    },
+                    yappin_image: {
+                        select: {
+                            image_link: true,
+                            type: true,
+                        }
+                    },
+                    // Tambahkan relasi untuk memeriksa apakah user telah like
+                    YappinLike: {
+                        where: {
+                            user_id: Number(user.id)
+                        },
+                        select: {
+                            id: true
+                        }
+                    }
+                }
+            });
+            
+            // Pastikan `result` tidak null
+            if (!result) {
+                return {
+                    status: false,
+                    message: "Yappin not found",
+                    data: null
+                };
+            }
+            
+            // Tambahkan properti `isLiked` berdasarkan apakah `YappinLike` ada atau tidak
+            const updatedPosts = result.map(post => ({
+                ...post,
+                isLiked: post.YappinLike.length > 0 // Jika ada like dari user, maka isLiked akan true
+            }));
+            
+            // Kembalikan hasil dengan status sukses
+            return {
+                status: true,
+                message: "Success",
+                data: updatedPosts
+            };
+            
+        } catch (err) {
+            throw err
+        }
+    }, {
+    })
     .get("/yapping/:id", async ( { user, params }: { user: { id: string; name: string, exp : number }, params : { id : string} }) => {
         try {
                         
@@ -23,6 +117,7 @@ const YappingRoute = new Elysia()
                     id: true,
                     caption: true,
                     total_likes: true,
+                    total_comments : true,
                     is_public: true,
                     location: true,
                     created_at: true,
@@ -77,17 +172,37 @@ const YappingRoute = new Elysia()
         }
     }, {
     })
-    .get("/yapping", async ( { user }: { user: { id: string; name: string, exp : number } }) => {
+    .get("/yapping", async ( 
+        { user }: { user: 
+            { id: string; 
+              name: string, 
+              exp : number, 
+              preference_one : string,
+              preference_two : string,
+              preference_three : string,
+              preference_four : string,           
+            } }) => {
         try {
 
+            //ini nah preference ini itu isinya kaya 'Vlog', 'Family'
+
+            // yang nanti dicocokin ama postingannya, jadi kaya algoritma, gitu
+            // preference_one : string,
+            // preference_two : string,
+            // preference_three : string,
+            // preference_four : string,         
+            // buatin prisma nya
             const page = 1; 
             const limit = 10;
             
-            // Ambil user_id dari token yang terotentikasi
-            const userId = user.id; // Pastikan `userId` diambil dari otentikasi JWT
-            
             const result = await prisma.yappins.findMany({
                 where: {
+                    OR: [
+                        { tag_one_name: user.preference_one },
+                        { tag_two_name: user.preference_two },
+                        { tag_three_name: user.preference_three },
+                        { tag_four_name: user.preference_four }
+                    ],                    
                     is_public: true,
                 },
                 orderBy: {
@@ -99,6 +214,7 @@ const YappingRoute = new Elysia()
                     id: true,
                     caption: true,
                     total_likes: true,
+                    total_comments : true,
                     is_public: true,
                     location :true,
                     created_at: true,
@@ -147,7 +263,7 @@ const YappingRoute = new Elysia()
     .get("/my-yapping", async ({ user }: { user: { id: string; name: string, exp : number } }) => {
         try {
 
-            console.log(user)
+         
 
             const page = 1; 
             const limit = 10;
@@ -214,6 +330,23 @@ const YappingRoute = new Elysia()
             if(typeof tag_one_id !== 'number' || typeof tag_two_id !== 'number' || typeof tag_three_id !== 'number' || typeof tag_four_id !== 'number'){
                 throw new BadRequest("tag id must be a number")
             }
+
+            const allowedDomains = [
+                'google.com',
+                'github.com',
+                'cnn.com',
+                'myanimelist.com',
+                'yahoo.com',
+                'gmail.com',
+                'outlook.com',
+                'kentang.my.id',
+                'example.com' 
+            ];
+            
+            if (!containsValidLinks(body.caption, allowedDomains)) {
+                throw new BadRequest("Your caption contains disallowed links!");
+            }
+    
 
             let is_public;
             switch (body.is_public) {

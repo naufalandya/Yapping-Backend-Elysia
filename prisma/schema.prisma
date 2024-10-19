@@ -84,6 +84,7 @@ model users {
   created_at                                                 DateTime                @default(now())
   updated_at                                                 DateTime
   role                                                       ROLE                    @default(USER)
+  UsageRecord                                                UsageRecord[]
   YappinComment                                              YappinComment[]
   YappinLike                                                 YappinLike[]
   comment_notifications_comment_notifications_by_idTousers   comment_notifications[] @relation("comment_notifications_by_idTousers")
@@ -170,6 +171,29 @@ model comment_notifications {
   users_comment_notifications_by_idTousers   users         @relation("comment_notifications_by_idTousers", fields: [by_id], references: [id])
   users_comment_notifications_user_idTousers users         @relation("comment_notifications_user_idTousers", fields: [user_id], references: [id])
   YappinComment                              YappinComment @relation(fields: [yappin_comment_id], references: [id])
+}
+
+model UsageRecord {
+  id        String   @id
+  userId    Int
+  date      DateTime
+  duration  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  users     users    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model sqlx_migrations {
+  version        BigInt   @id
+  description    String
+  installed_on   DateTime @default(now()) @db.Timestamptz(6)
+  success        Boolean
+  checksum       Bytes
+  execution_time BigInt
+
+  @@map("_sqlx_migrations")
 }
 
 enum EXTENSION {

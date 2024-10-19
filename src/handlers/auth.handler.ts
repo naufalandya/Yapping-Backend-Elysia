@@ -1,6 +1,7 @@
 import { NotFoundError } from "elysia";
 import { BadRequest, Conflict } from "../error/error.handler";
 import { findUserByEmail, findUserByUsername, hashPassword, matchPassword, signupUser } from "../services/user.service";
+import { prisma } from "../libs";
 
 export const signupHandler = async (body: User) => {
     try {
@@ -48,7 +49,20 @@ export const signinHandler = async (body : User) => {
             throw new BadRequest("password does not match !");
         }
 
-        return { id : email.id, username : email.username }
+        const preference = await prisma.preference_yappin.findUnique({
+            where : {
+                user_id : email.id
+            }
+        })
+
+        return { 
+            id : email.id, 
+            username : email.username, 
+            preference_one : preference?.preference_tag_one || " ", 
+            preference_two : preference?.preference_tag_two || " ",
+            preference_three : preference?.preference_tag_three || " ",
+            preference_four : preference?.preference_tag_four || " "  
+        }
 
     } catch(err) {
         throw err

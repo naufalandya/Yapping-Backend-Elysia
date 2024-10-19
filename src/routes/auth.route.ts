@@ -9,6 +9,7 @@ const authRoute = new Elysia( { prefix : '/auth'})
   // JWT configuration
     .use(
         jwt({
+            sub : 'lol',
             name: 'jwt',
             secret: String(Bun.env.JWT_SECRET),
             exp: '7d',

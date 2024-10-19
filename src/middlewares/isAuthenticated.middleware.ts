@@ -14,7 +14,12 @@ export const isAuthenticated = (app: Elysia) =>
             schema: t.Object({
                 id: t.String(),
                 username : t.String(),
-                exp : t.Number() 
+                preference_one : t.String(),
+                preference_two : t.String(),
+                preference_three : t.String(),
+                preference_four : t.String(),
+                exp : t.Number() ,
+
             }),
             exp: '7d',
             alg : 'HS512',

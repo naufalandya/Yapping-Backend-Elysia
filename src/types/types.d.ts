@@ -170,3 +170,6 @@ export type Reminder = {
     ADMIN = "ADMIN",
   }
   
+  // LOL
+
+  // types.ts

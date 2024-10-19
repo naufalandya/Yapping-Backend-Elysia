@@ -13,6 +13,7 @@ import ReminderRoute from "./routes/reminder.route";
 import UserRoute from "./routes/user.route";
 import NewsRoute from "./routes/news.route";
 
+
 // SETUP ORIGIN REQUEST & ENV
 
 let ORIGIN_REQUEST
@@ -44,7 +45,7 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
 
   .use(cors(
     {
-      origin : ['http://localhost:5173', 'http://localhost:5173/', 'localhost:5173', String(ORIGIN_REQUEST), "https://bw2nj1xt-3500.asse.devtunnels.ms", "http://103.196.155.16:5173/", "http://103.196.155.16:5173", "http://alobro.my.id", "http://alobro.my.id/", "http://bw2nj1xt-3500.asse.devtunnels.ms", "https://bw2nj1xt-5173.asse.devtunnels.ms", "https://bw2nj1xt-5173.asse.devtunnels.ms/", "bw2nj1xt-5173.asse.devtunnels.ms"],
+      origin : ['http://localhost:5174', 'http://localhost:5174/', 'localhost:5174', String(ORIGIN_REQUEST), "https://bw2nj1xt-3500.asse.devtunnels.ms", "http://103.196.155.16:5174/", "http://103.196.155.16:5173", "http://alobro.my.id", "http://alobro.my.id/", "http://bw2nj1xt-3500.asse.devtunnels.ms", "https://bw2nj1xt-5174.asse.devtunnels.ms", "https://bw2nj1xt-5174.asse.devtunnels.ms/", "bw2nj1xt-5174.asse.devtunnels.ms"],
     }
   ))
 
@@ -195,7 +196,7 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
 
   //Run App  
 
-  .listen(3500);
+  .listen(3501);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
