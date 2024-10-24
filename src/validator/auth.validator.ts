@@ -9,7 +9,7 @@ export const signupValidator = {
         name: t.String({
             required: true,
             example: "Naufal Andya Faiz",
-            minLength: 8,
+            minLength: 3,
             maxLength: 25,
             error( { errors, validator, type, value }){
                 if (errors[0].type == 45){
