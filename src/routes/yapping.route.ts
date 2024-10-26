@@ -12,6 +12,7 @@ import db from "../libs/drizzle.lib";
 import { users, yappinImage, yappins } from '../../drizzle/schema';
 import { desc, eq, gt } from "drizzle-orm";
 import { containsValidLinks } from "../utils/checkLink.util";
+import { toBoolean } from "../utils/convertBoolean";
 
 const YappingRoute = new Elysia()
     .use(isAuthenticated)
@@ -173,7 +174,7 @@ const YappingRoute = new Elysia()
     }, {
     })
     .get("/yapping", async ( 
-        { user }: { user: 
+        { user, query }: { user: 
             { id: string; 
               name: string, 
               exp : number, 
@@ -181,66 +182,116 @@ const YappingRoute = new Elysia()
               preference_two : string,
               preference_three : string,
               preference_four : string,           
+            }, query : {
+                music : string,
+                male : string,
+                female : string,
+                nonHijab : string,
+                anime : string,
             } }) => {
         try {
 
-            //ini nah preference ini itu isinya kaya 'Vlog', 'Family'
+            console.log(query)
 
-            // yang nanti dicocokin ama postingannya, jadi kaya algoritma, gitu
-            // preference_one : string,
-            // preference_two : string,
-            // preference_three : string,
-            // preference_four : string,         
-            // buatin prisma nya
+            const music = toBoolean(query.music);
+            const male = toBoolean(query.male);
+            const female = toBoolean(query.female);
+            const nonHijab = toBoolean(query.nonHijab);
+            const anime = toBoolean(query.anime);
+            
             const page = 1; 
             const limit = 10;
             
+            // Define conditions for Prisma query based on preferences
+            const conditions = [];
+            
+            // Condition for music
+            if (music) {
+              conditions.push({ is_music: false });
+            }
+            
+            // Condition for male
+            if (male) {
+              conditions.push({ is_male: false });
+            }
+            
+            // Condition for anime
+            if (anime) {
+              conditions.push({ anime: false });
+            }
+            
+            // Handle conditions for female and nonHijab
+            if (female) {
+              // If female is true, hide all female videos
+              conditions.push({ is_female: false });
+            }
+            
+            // If only nonHijab is true, hide non-hijab female videos
+            if (nonHijab) {
+              // Hide only non-hijab females but keep hijab females
+              conditions.push({ is_non_hijab_female: false });
+            }
+            
+            // If both female and nonHijab are true, both should be hidden
+            if (female && nonHijab) {
+              conditions.push({
+                OR: [
+                  { is_female: false }, // Hide all females
+                  { is_non_hijab_female: false } // Hide non-hijab females
+                ]
+              });
+            }
+            
+            // Prisma query using dynamic conditions
             const result = await prisma.yappins.findMany({
-                where: {
-                    OR: [
-                        { tag_one_name: user.preference_one },
-                        { tag_two_name: user.preference_two },
-                        { tag_three_name: user.preference_three },
-                        { tag_four_name: user.preference_four }
-                    ],                    
-                    is_public: true,
+              where: {
+                is_public: true,
+                AND: conditions,
+                OR: [
+                  { tag_one_name: user.preference_one },
+                  { tag_two_name: user.preference_two },
+                  { tag_three_name: user.preference_three },
+                  { tag_four_name: user.preference_four }
+                ]
+              },
+              orderBy: {
+                created_at: 'desc'
+              },
+              skip: (page - 1) * limit,
+              take: limit,
+              select: {
+                id: true,
+                caption: true,
+                total_likes: true,
+                total_comments: true,
+                is_public: true,
+                location: true,
+                created_at: true,
+                users: {
+                  select: {
+                    username: true,
+                    avatar_link: true
+                  }
                 },
-                orderBy: {
-                    created_at: 'desc',
+                yappin_image: {
+                  select: {
+                    image_link: true,
+                    type: true
+                  }
                 },
-                skip: (page - 1) * limit,
-                take: limit, 
-                select: {
-                    id: true,
-                    caption: true,
-                    total_likes: true,
-                    total_comments : true,
-                    is_public: true,
-                    location :true,
-                    created_at: true,
-                    users: {
-                        select: {
-                            username: true,
-                            avatar_link: true
-                        }
-                    },
-                    yappin_image : {
-                        select : {
-                            image_link : true,
-                            type : true,
-                        }
-                    },
-                    // Tambahkan relasi untuk memeriksa apakah user telah like
-                    YappinLike: {
-                        where: {
-                            user_id: Number(user.id)
-                        },
-                        select: {
-                            id: true
-                        }
-                    }
+                // Check if the user has liked the yappin
+                YappinLike: {
+                  where: {
+                    user_id: Number(user.id)
+                  },
+                  select: {
+                    id: true
+                  }
                 }
+              }
             });
+            
+            
             
             // Map the result to include `isLiked` status
             const updatedPosts = result.map(post => ({

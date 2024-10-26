@@ -101,7 +101,7 @@ const ReminderRoute = new Elysia()
                 }
             });
 
-            console.log(result)
+            // console.log(result)
 
             return {
                 status: true,

@@ -109,26 +109,31 @@ model yappin_image {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model yappins {
-  id             Int             @id @default(autoincrement())
-  caption        String
-  total_likes    Int?            @default(0)
-  created_at     DateTime
-  tag_one_id     Int?
-  tag_two_id     Int?
-  tag_three_id   Int?
-  tag_four_id    Int?
-  user_id        Int
-  tag_four_name  String?
-  tag_one_name   String?
-  tag_three_name String?
-  tag_two_name   String?
-  is_public      Boolean         @default(false)
-  total_comments Int?            @default(0)
-  location       String?
-  YappinComment  YappinComment[]
-  YappinLike     YappinLike[]
-  yappin_image   yappin_image[]
-  users          users           @relation(fields: [user_id], references: [id])
+  id                  Int             @id @default(autoincrement())
+  caption             String
+  total_likes         Int?            @default(0)
+  created_at          DateTime
+  tag_one_id          Int?
+  tag_two_id          Int?
+  tag_three_id        Int?
+  tag_four_id         Int?
+  user_id             Int
+  tag_four_name       String?
+  tag_one_name        String?
+  tag_three_name      String?
+  tag_two_name        String?
+  is_public           Boolean         @default(false)
+  total_comments      Int?            @default(0)
+  location            String?
+  is_female           Boolean?        @default(false)
+  is_male             Boolean?        @default(false)
+  is_non_hijab_female Boolean?        @default(false)
+  anime               Boolean?        @default(false)
+  is_music            Boolean?        @default(false)
+  YappinComment       YappinComment[]
+  YappinLike          YappinLike[]
+  yappin_image        yappin_image[]
+  users               users           @relation(fields: [user_id], references: [id])
 }
 
 model list_preference {
@@ -216,6 +221,13 @@ model physic_facts {
   id         BigInt   @id(map: "physic_fact_pkey") @default(autoincrement())
   created_at DateTime @default(now()) @db.Timestamptz(6)
   fact       String?
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tips {
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  tips       String?
 }
 
 enum EXTENSION {

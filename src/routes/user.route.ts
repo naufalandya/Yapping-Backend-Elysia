@@ -6,9 +6,22 @@ import { User, Yappins } from "../types/types";
 import { BadRequest, Conflict, ErrorNotFound, InvalidData } from '../error/error.handler';
 import { uploadImage } from "../utils/imagekit.util";
 import { detectMimeType } from "../utils/checkmime.util";
+import { bearer } from '@elysiajs/bearer';
+import { jwt } from '@elysiajs/jwt';
 
 const UserRoute = new Elysia()
+
     .use(isAuthenticated)
+    .use(
+        jwt({
+            sub : 'lol',
+            name: 'jwt',
+            secret: String(Bun.env.JWT_SECRET),
+            exp: '7d',
+            alg : 'HS512',
+        })
+    )
+    .use(bearer())
     .get("/profile", async ({ user }: { user: { id: string; name: string, exp : number } }) => {
             try {
 
@@ -105,7 +118,7 @@ const UserRoute = new Elysia()
     ,})
     .put(
         "/profile",
-        async ({ user, body }: { user: { id: string; name: string; exp: number }; body: Partial<User> }) => {
+        async ({ user, body, jwt }: { user: { id: string; name: string; exp: number }; body: Partial<User>, jwt : any }) => {
             try {
                 
                 const userId = Number(user.id);
@@ -180,6 +193,36 @@ const UserRoute = new Elysia()
                         total_engage_four: body.preference_yappin?.total_engage_four || 0,
                     },
                 });
+
+                if (upsertPreference.preference_tag_one !== null && upsertPreference.preference_tag_two !== null && upsertPreference.preference_tag_three !== null && upsertPreference.preference_tag_four !== null) {
+                    const preference = await prisma.preference_yappin.findUnique({
+                        where : {
+                            user_id : updatedUser.id
+                        }
+                    })
+
+                    const payload = {
+                        id : updatedUser.id, 
+                        username : updatedUser.username, 
+                        preference_one : preference?.preference_tag_one || " ", 
+                        preference_two : preference?.preference_tag_two || " ",
+                        preference_three : preference?.preference_tag_three || " ",
+                        preference_four : preference?.preference_tag_four || " "  
+                    }
+
+                    const token = await jwt.sign(payload)
+
+                    return {
+                        status: true,
+                        message: 'Profile updated successfully',
+                        data: {
+                            user: updatedUser,
+                            preference: upsertPreference,
+                            token : token
+                        },
+                    };
+
+                }
     
                 return {
                     status: true,
@@ -187,6 +230,7 @@ const UserRoute = new Elysia()
                     data: {
                         user: updatedUser,
                         preference: upsertPreference,
+                        token : null
                     },
                 };
             } catch (err) {
