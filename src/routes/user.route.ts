@@ -24,8 +24,6 @@ const UserRoute = new Elysia()
     .use(bearer())
     .get("/profile", async ({ user }: { user: { id: string; name: string, exp : number } }) => {
             try {
-
-                console.log(user)
                 
                 const result = await prisma.users.findUnique({
                     where : {
@@ -47,7 +45,6 @@ const UserRoute = new Elysia()
                         message : 'user not found'
                     }
                 }
-                console.log(result)
 
                 return {
                     status: true,
@@ -93,7 +90,6 @@ const UserRoute = new Elysia()
                     message : 'user not found'
                 }
             }
-            console.log(result)
 
             return {
                 status: true,
@@ -496,7 +492,6 @@ const UserRoute = new Elysia()
                 },
             };
         } catch (error) {
-            console.error('Error fetching user daily statistics:', error);
             return {
                 status: false,
                 message: 'Failed to retrieve daily statistics.',
@@ -533,11 +528,13 @@ const UserRoute = new Elysia()
             const mediaBuffer = Buffer.from(arrayBuffer)
 
             if(mimeType && (mimeType.startsWith('image/'))){
-                const analysisResponse = await fetch('http://localhost:5000/predict/image', {
+                const formData = new FormData();
+                formData.append('image', body.image); // Menggunakan Blob langsung
+
+                const analysisResponse = await fetch('http://localhost:5000/v3/detect-image-test', {
                     method: 'POST',
-                    body: mediaBuffer,
-                    headers: { 'Content-Type': 'application/octet-stream' } 
-                });   
+                    body: formData // Mengirim form data
+                });
                 
                 const analysisResult = await analysisResponse.json();
                 if(analysisResult.message !== "success"){
@@ -564,6 +561,8 @@ const UserRoute = new Elysia()
                     data : uploadResponse.url,
                 };
 
+            } else {
+                throw new BadRequest("Invalid image !")
             }
 
         } catch (err){

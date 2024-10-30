@@ -34,6 +34,7 @@ const ReminderRoute = new Elysia()
                     content : true,
                     is_finished : true,
                     started_date : true,
+                    location : true,
                     finished_date: true,
                     created_date: true,
                     deadline_date: true,
@@ -92,6 +93,7 @@ const ReminderRoute = new Elysia()
                     finished_date: true,
                     created_date: true,
                     deadline_date: true,
+                    location : true,
                     users: {
                         select: {
                             username: true,

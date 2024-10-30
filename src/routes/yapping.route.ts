@@ -7,7 +7,7 @@ import { BadRequest, InvalidData } from "../error/error.handler";
 import { stringValidation, stringValidationOptional } from '../error/validation.error';
 import { uploadImage, uploadVideo } from "../utils/imagekit.util";
 import { detectMimeType } from "../utils/checkmime.util";
-import { createYappin } from "../services/yappin.service";
+import { createYappin, createYappinVideo } from "../services/yappin.service";
 import db from "../libs/drizzle.lib";
 import { users, yappinImage, yappins } from '../../drizzle/schema';
 import { desc, eq, gt } from "drizzle-orm";
@@ -196,7 +196,7 @@ const YappingRoute = new Elysia()
             const music = toBoolean(query.music);
             const male = toBoolean(query.male);
             const female = toBoolean(query.female);
-            const nonHijab = toBoolean(query.nonHijab);
+            // const nonHijab = toBoolean(query.nonHijab);
             const anime = toBoolean(query.anime);
             
             const page = 1; 
@@ -227,20 +227,20 @@ const YappingRoute = new Elysia()
             }
             
             // If only nonHijab is true, hide non-hijab female videos
-            if (nonHijab) {
-              // Hide only non-hijab females but keep hijab females
-              conditions.push({ is_non_hijab_female: false });
-            }
+            // if (nonHijab) {
+            //   // Hide only non-hijab females but keep hijab females
+            //   conditions.push({ is_non_hijab_female: false });
+            // }
             
-            // If both female and nonHijab are true, both should be hidden
-            if (female && nonHijab) {
-              conditions.push({
-                OR: [
-                  { is_female: false }, // Hide all females
-                  { is_non_hijab_female: false } // Hide non-hijab females
-                ]
-              });
-            }
+            // // If both female and nonHijab are true, both should be hidden
+            // if (female && nonHijab) {
+            //   conditions.push({
+            //     OR: [
+            //       { is_female: false }, // Hide all females
+            //       { is_non_hijab_female: false } // Hide non-hijab females
+            //     ]
+            //   });
+            // }
             
             // Prisma query using dynamic conditions
             const result = await prisma.yappins.findMany({
@@ -424,20 +424,31 @@ const YappingRoute = new Elysia()
             const mimeType= await detectMimeType(arrayBuffer)
             const mediaBuffer = Buffer.from(arrayBuffer)
 
+            let gender = undefined
+
             if(mimeType && (mimeType.startsWith('image/'))){
-                const analysisResponse = await fetch('http://localhost:5000/predict/image', {
+
+                const formData = new FormData();
+                formData.append('image', body.image); // Menggunakan Blob langsung
+
+                const analysisResponse = await fetch('http://localhost:5000/v3/detect-image-test', {
                     method: 'POST',
-                    body: mediaBuffer,
-                    headers: { 'Content-Type': 'application/octet-stream' } 
-                });   
+                    body: formData // Mengirim form data
+                });
                 
                 const analysisResult = await analysisResponse.json();
+
+                console.log(analysisResult)
                 if(analysisResult.message !== "success"){
                     throw new BadRequest("image does not meet our policy")
                 }
 
+                if (analysisResult.gender === "female" || analysisResult.gender === "male"){
+                    gender = analysisResult.gender
+                }
+
                 const uploadResponse = await uploadImage(mediaBuffer, user.username + String(new Date())); 
-                const yappin = await createYappin(is_public, tag_one_id, tag_two_id, tag_three_id, tag_four_id, user, body)
+                const yappin = await createYappin(gender, is_public, tag_one_id, tag_two_id, tag_three_id, tag_four_id, user, body)
         
                 await prisma.yappin_image.create({
                     data: {
@@ -461,9 +472,13 @@ const YappingRoute = new Elysia()
                     throw new BadRequest("video does not meet our policy")
                 }
 
+                if (analysisResult.gender === "female" || analysisResult.gender === "male"){
+                    gender = analysisResult.gender
+                }
+
                 const uploadResponse = await uploadVideo(mediaBuffer, user.username + String(new Date())); 
 
-                const yappin = await createYappin(is_public, tag_one_id, tag_two_id, tag_three_id, tag_four_id, user, body)
+                const yappin = await createYappinVideo(analysisResult.music, gender, is_public, tag_one_id, tag_two_id, tag_three_id, tag_four_id, user, body)
         
                 await prisma.yappin_image.create({
                     data: {
@@ -480,7 +495,6 @@ const YappingRoute = new Elysia()
             };
         
         } catch (err) {
-            console.log(err)
             throw err;
         } 
         
