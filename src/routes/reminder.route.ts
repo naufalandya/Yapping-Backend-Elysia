@@ -124,6 +124,18 @@ const ReminderRoute = new Elysia()
             console.log(user)
             // Menentukan nilai is_public berdasarkan body.is_public
             const is_public = body.is_public === '1';
+
+            const response = await fetch('http://localhost:5000/check-text/reminder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text : body.content, title : body.location, location : body.location })
+            });
+
+            if(!response.ok){
+                throw new BadRequest("Your words contains negativity, bad word, or profanity !")
+            }
     
             // Membuat pengingat dengan memanggil createReminder
             await createReminder(is_public, user, body);

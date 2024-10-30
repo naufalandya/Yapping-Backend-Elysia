@@ -408,12 +408,12 @@ const YappingRoute = new Elysia()
                     is_public = false;
             }
 
-            const response = await fetch('http://localhost:5000/check-text', {
+            const response = await fetch('http://localhost:5000/check-text/yapping', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ text : body.caption })
+                body: JSON.stringify({ text : body.caption, location : body.location })
             });
 
             if(!response.ok){

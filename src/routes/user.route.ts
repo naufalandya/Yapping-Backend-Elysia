@@ -121,13 +121,6 @@ const UserRoute = new Elysia()
     
                 const existingUser = await prisma.users.findUnique({
                     where: { id: userId },
-                    // select: {
-                    //     name: true,
-                    //     username: true,
-                    //     bio: true,
-                    //     created_at: true,
-                    //     avatar_link: true,
-                    // },
                 });
 
                 if (!existingUser) {
@@ -136,6 +129,9 @@ const UserRoute = new Elysia()
                         message: 'User not found',
                     };
                 }
+
+
+
 
                 if(body.username) {
                     const isUsername = await prisma.users.findUnique({
@@ -151,6 +147,18 @@ const UserRoute = new Elysia()
                     if(isUsername){
                         throw new Conflict("Oh no !, this username is already used !")
                     }
+                }
+
+                const response = await fetch('http://localhost:5000/check-text/profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name : body.name || '', username : body.username || '', bio : body.bio || '' })
+                });
+    
+                if(!response.ok){
+                    throw new BadRequest("Your words contains negativity, bad word, or profanity !")
                 }
     
                 const updatedUser = await prisma.users.update({
