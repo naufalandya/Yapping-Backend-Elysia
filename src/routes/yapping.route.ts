@@ -108,6 +108,8 @@ const YappingRoute = new Elysia()
     })
     .get("/yapping/:id", async ( { user, params }: { user: { id: string; name: string, exp : number }, params : { id : string} }) => {
         try {
+
+            console.log(params)
                         
             const result = await prisma.yappins.findUnique({
                 where: {
@@ -172,6 +174,10 @@ const YappingRoute = new Elysia()
             throw err
         }
     }, {
+        params: t.Object({
+            id: t.Number()
+        })
+
     })
     .get("/yapping", async ( 
         { user, query }: { user: 
