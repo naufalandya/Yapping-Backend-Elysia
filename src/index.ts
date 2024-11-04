@@ -45,8 +45,37 @@ const app = new Elysia().error( { ErrorNotFound, BadRequest, InvalidData, Confli
 
   .use(cors(
     {
-      origin : [    "http://103.196.155.16:4173",
-    "http://103.196.155.16:4173/",'http://localhost:4173', 'http://localhost:4173/','http://localhost:5174', 'http://localhost:5174/', 'localhost:5174', String(ORIGIN_REQUEST), "https://bw2nj1xt-3500.asse.devtunnels.ms", "http://103.196.155.16:5174/", "http://103.196.155.16:5173", "http://192.168.0.102:5174/", "http://192.168.0.102:5174", "http://alobro.my.id", "http://alobro.my.id/", "http://bw2nj1xt-3500.asse.devtunnels.ms", "https://bw2nj1xt-5174.asse.devtunnels.ms", "https://bw2nj1xt-5174.asse.devtunnels.ms/", "bw2nj1xt-5174.asse.devtunnels.ms", "https://92345mxk-4173.asse.devtunnels.ms", "https://92345mxk-4173.asse.devtunnels.ms/"],
+      origin : [    
+        "http://103.196.155.16:4173",
+        "http://103.196.155.16:4173/",
+        'http://localhost:4173', 
+        'http://localhost:4173/',
+        'http://localhost:5174', 
+        'http://localhost:5174/', 
+        'localhost:5174', 
+        String(ORIGIN_REQUEST), 
+        "https://bw2nj1xt-3500.asse.devtunnels.ms", 
+        "http://103.196.155.16:5174/", 
+        "http://103.196.155.16:5173", 
+        "http://192.168.0.102:5174/", 
+        "http://192.168.0.102:5174", 
+        "http://alobro.my.id", 
+        "https://alobro.my.id",
+        "http://alobro.my.id/", 
+        "http://bw2nj1xt-3500.asse.devtunnels.ms", 
+        "https://bw2nj1xt-5174.asse.devtunnels.ms", 
+        "https://bw2nj1xt-5174.asse.devtunnels.ms/", 
+        "bw2nj1xt-5174.asse.devtunnels.ms", 
+        "https://92345mxk-4173.asse.devtunnels.ms", 
+        "https://92345mxk-4173.asse.devtunnels.ms/",
+        "https://nanady-concept-frontend.vercel.app",
+        "https://nanady-concept-frontend.vercel.app/",
+        "https://yapping-iota.vercel.app/",
+        "https://yapping-iota.vercel.app",
+        "https://yapping.pages.dev/",
+        "https://yapping.pages.dev"
+
+      ],
     }
   ))
 
